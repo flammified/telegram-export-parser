@@ -1,5 +1,5 @@
 (ns telegram-export-parser.core
-  (:require [clojure.string :as string]
+  (:require [clojure.string :as str]
             [clojure.java.jdbc :refer :all]
             [pl.danieljanus.tagsoup :as tagsoup]))
 
@@ -14,9 +14,7 @@
   [db]
   (try (db-do-commands db
                        (create-table-ddl :chatmessages
-                                         [[:timestamp :datetime]
-                                          [:message :text]
-                                          [:username :text]]))
+                                          [:message :text]))
        (catch Exception e
          (println (.getMessage e)))))
 
@@ -24,68 +22,56 @@
 (defn parse-block [block]
   {:tag (first block) :text (second block) :children (drop 2 block)})
 
+(defn meta-to-keywords [{:keys [class]}]
+  (map keyword (str/split class #" ")))
 
-(defn is-chat [block]
-  (println "START" block)
-  (let [[tag meta] block
-        class (:class meta)]
+(defn children->map [[root-tag root-meta & root-children]]
+  (reduce
+    (fn [result [tag meta & children :as child]]
+      (case tag
+        :div (reduce #(assoc %1 %2 child) {} (meta-to-keywords meta))
+        (assoc result tag child)))
+    {}
+    root-children))
 
-    (if (contains? (set (string/split class #" ")) "service")
-      false
-      (let [{tag :tag children :children} (parse-block block)
-            [userpic body] children
-            {children-body :children} (parse-block body)
-            [time-block from-block text-block] children-body
-            _ (println (parse-block text-block))
-            {:keys [tag text children]} (parse-block text-block)
-            _2 (println text)]
+(defn navigate [dom path]
+  (if (empty? path)
+    dom
+    (let [[next & rest] path
+          children-map (children->map dom)]
+      (recur (get children-map next) rest))))
 
-        (if (contains? (set (string/split (:class text) #" ")) "text")
-          true
-          false)))))
-
+(defn replace-blocks-with-original-text [text]
+  (reduce
+    (fn [string item]
+      (if (vector? item)
+        (str string (str/join " " (drop 2 item)))
+        (str string item)))
+    ""
+    text))
 
 (defn parse-message [message]
-  (let [{:keys [children]} (parse-block message)
-        [userpic body] children
-        {children-body :children} (parse-block body)
-        [time from text] children-body]
-    {:title (:title (second time)) :from (nth from 2) :text (nth text 2)}))
+  (let [[tag class & text] (navigate message [:body :text])]
+    (if (some? text)
+      (str/trim (replace-blocks-with-original-text text))
+      nil)))
 
-
-
-(defn get-messages [root]
-  (let [{tag :tag children :children} (parse-block root)
-        [_ body] children
-        {children-body :children} (parse-block body)
-        [page-wrap] children-body
-        {children-page-wrap :children} (parse-block page-wrap)
-        [page-header page-body] children-page-wrap
-        {children-page-body :children} (parse-block page-body)
-        [history] children-page-body
-        {history-children :children} (parse-block history)
-        [link & messages] history-children
-        all-messages (drop-last messages)] ;; Drop final link
-
-    (->> all-messages
-      (filter is-chat)
-      (map parse-message))))
-
-
-
-
+(defn get-text-of-messages [root]
+  (let [[_ _ & messages] (navigate root [:body :page_wrap :page_body :history])]
+    (->> messages
+         (map parse-message)
+         (filter some?))))
 
 (defn parse-file [file db]
   (let [contents (slurp file)
         html (tagsoup/parse-string contents)]
-    (println (get-messages html))))
-
+    (println (get-text-of-messages html))))
 
 (defn parse-directory [directory db-specs]
   (let [files (filter
                 #(.isFile %)
                 (file-seq (clojure.java.io/file directory)))]
-    (doall (map #(parse-file %1 db-specs) files))))
+    (reduce #(into [] (concat %1 (parse-file %2 db-specs) []))) files))
 
 
 
@@ -94,10 +80,10 @@
         ""
         "Usage: parser directory"
         ""]
-       (string/join \newline)))
+       (str/join \newline)))
 
 (defn -main [& args]
   (if (= (count args) 2)
     (let [db-specs (create-db-specs (second args))]
-      (parse-directory (first args) db-specs))
+      (println (parse-directory (first args) db-specs)))
     (print usage)))
