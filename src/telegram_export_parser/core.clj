@@ -68,7 +68,7 @@
 (defn parse-file [file db]
   (let [contents (slurp file)
         html (tagsoup/parse-string contents)]
-    (doall (map #(insert-into-db db %) (get-text-of-messages html)))))
+    (doall (map (partial insert-into-db db) (get-text-of-messages html)))))
 
 (defn parse-directory [directory db-specs]
   (let [files (filter
