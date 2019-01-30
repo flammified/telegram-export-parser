@@ -18,7 +18,7 @@
       (println (.getMessage e)))))
 
 (defn meta-to-keywords [{:keys [class]}]
-  (map keyword (str/split class #" ")))
+    (map keyword (str/split class #" ")))
 
 (defn children->map [[root-tag root-meta & root-children]]
   (reduce
