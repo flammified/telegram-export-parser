@@ -24,7 +24,7 @@
   (reduce
     (fn [result [tag meta & children :as child]]
       (case tag
-        :div (reduce #(assoc %1 %2 child) {} (meta-to-keywords meta))
+        :div (reduce #(assoc %1 %2 child) result (meta-to-keywords meta))
         (assoc result tag child)))
     {}
     root-children))
