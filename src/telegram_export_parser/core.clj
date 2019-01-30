@@ -46,9 +46,13 @@
     text))
 
 (defn parse-message [message]
-  (let [[tag class & text] (navigate message [:body :text])]
-    (if (some? text)
-      (str/trim (replace-blocks-with-original-text text))
+  (let [[_ _ & text] (navigate message [:body :text])
+        [_ {datetime :title} & _] (navigate message [:body :details])]
+    (if (and (some? text) (some? datetime))
+      (-> text
+          (replace-blocks-with-original-text)
+          (str/trim)
+          (str/lower-case))
       nil)))
 
 (defn get-text-of-messages [root]
