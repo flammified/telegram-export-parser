@@ -20,7 +20,7 @@
 (defn meta-to-keywords [{:keys [class]}]
     (map keyword (str/split class #" ")))
 
-(defn children->map [[root-tag root-meta & root-children]]
+(defn children->map [[_ _ & root-children]]
   (reduce
     (fn [result [tag meta & children :as child]]
       (case tag
