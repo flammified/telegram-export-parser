@@ -12,14 +12,10 @@
 (defn create-db
   "create db and table"
   [db]
-  (try (db-do-commands db (create-table-ddl :chatmessages [[:message :text]]))
-
-       (catch Exception e
-         (println (.getMessage e)))))
-
-
-(defn parse-block [block]
-  {:tag (first block) :text (second block) :children (drop 2 block)})
+  (try
+    (db-do-commands db (create-table-ddl :chatmessages [[:message :text] [:time :datetime]]))
+    (catch Exception e
+      (println (.getMessage e)))))
 
 (defn meta-to-keywords [{:keys [class]}]
   (map keyword (str/split class #" ")))
