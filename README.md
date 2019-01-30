@@ -1,14 +1,9 @@
-# telegram-export-parser
+# Telegram Export Parser
 
-A Clojure library designed to ... well, that part is up to you.
+A parser for telegram chat exports.
 
-## Usage
+Current features:
 
-FIXME
-
-## License
-
-Copyright © 2019 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+- Parsing a directory of logs
+- Extracting text messages
+- Outputting to sql
