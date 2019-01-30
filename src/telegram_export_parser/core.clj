@@ -12,9 +12,8 @@
 (defn create-db
   "create db and table"
   [db]
-  (try (db-do-commands db
-                       (create-table-ddl :chatmessages
-                                          [:message :text]))
+  (try (db-do-commands db (create-table-ddl :chatmessages [[:message :text]]))
+
        (catch Exception e
          (println (.getMessage e)))))
 
@@ -62,16 +61,20 @@
          (map parse-message)
          (filter some?))))
 
+(defn insert-into-db [db message]
+  (insert! db :chatmessages {:message message}))
+
+
 (defn parse-file [file db]
   (let [contents (slurp file)
         html (tagsoup/parse-string contents)]
-    (println (get-text-of-messages html))))
+    (doall (map #(insert-into-db db %) (get-text-of-messages html)))))
 
 (defn parse-directory [directory db-specs]
   (let [files (filter
                 #(.isFile %)
                 (file-seq (clojure.java.io/file directory)))]
-    (reduce #(into [] (concat %1 (parse-file %2 db-specs) []))) files))
+    (doall (map #(parse-file %1 db-specs) files))))
 
 
 
@@ -85,5 +88,6 @@
 (defn -main [& args]
   (if (= (count args) 2)
     (let [db-specs (create-db-specs (second args))]
-      (println (parse-directory (first args) db-specs)))
+      (create-db db-specs)
+      (parse-directory (first args) db-specs))
     (print usage)))

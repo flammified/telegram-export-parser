@@ -3,4 +3,5 @@
   :main telegram-export-parser.core
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/java.jdbc "0.7.8"]
-                 [clj-tagsoup/clj-tagsoup "0.3.0"]])
+                 [clj-tagsoup/clj-tagsoup "0.3.0"]
+                 [org.xerial/sqlite-jdbc "3.7.2"]])
