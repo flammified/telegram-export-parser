@@ -81,7 +81,7 @@
 (def usage
   (->> ["Parser for telegram HTML logs"
         ""
-        "Usage: parser directory"
+        "Usage: parser directory dbfilename"
         ""]
        (str/join \newline)))
 
