@@ -77,11 +77,11 @@
     (doall (map #(parse-file %1 db-specs) files))))
 
 
-
 (def usage
   (->> ["Parser for telegram HTML logs"
         ""
-        "Usage: parser directory dbfilename"
+        "Usage: ./parser <directory> <dbfilename>"
+        "E.g. ./parser logs messages.db"
         ""]
        (str/join \newline)))
 
