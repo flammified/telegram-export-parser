@@ -2,7 +2,8 @@
   (:require [clojure.string :as str]
             [clojure.java.jdbc :refer :all]
             [pl.danieljanus.tagsoup :as tagsoup]
-            [clojure.tools.cli :refer [parse-opts]]))
+            [clojure.tools.cli :refer [parse-opts]])
+  (:gen-class))
 
 (defn create-db-specs [filename]
   {:classname   "org.sqlite.JDBC"
@@ -10,7 +11,6 @@
    :subname     filename})
 
 (defn create-db!
-  "create db and table"
   [db]
   (try
     (db-do-commands db (create-table-ddl :chatmessages [[:message :text] [:time :datetime]]))
@@ -68,10 +68,11 @@
 
 (defn get-text-of-messages [root opts]
   (let [[_ _ & messages] (navigate root [:body :page_wrap :page_body :history])]
+
     (->> messages
          (map (partial parse-message opts))
          (filter some?)
-         (filter (not (blank?))))))
+         (filter #(not (str/blank? (:message %)))))))
 
 (defn insert-into-db [db {:keys [message time]}]
   (insert! db :chatmessages {:message message :time time}))
