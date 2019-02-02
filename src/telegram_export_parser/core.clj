@@ -4,8 +4,6 @@
             [pl.danieljanus.tagsoup :as tagsoup]
             [clojure.tools.cli :refer [parse-opts]]))
 
-
-
 (defn create-db-specs [filename]
   {:classname   "org.sqlite.JDBC"
    :subprotocol "sqlite"
