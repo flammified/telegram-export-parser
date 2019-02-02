@@ -45,7 +45,6 @@
     ""
     text))
 
-
 (defn remove-blocks [text]
   (reduce
     (fn [string item]
@@ -71,7 +70,8 @@
   (let [[_ _ & messages] (navigate root [:body :page_wrap :page_body :history])]
     (->> messages
          (map (partial parse-message opts))
-         (filter some?))))
+         (filter some?)
+         (filter (not (blank?))))))
 
 (defn insert-into-db [db {:keys [message time]}]
   (insert! db :chatmessages {:message message :time time}))
