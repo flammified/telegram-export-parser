@@ -14,7 +14,7 @@
 (defn create-db!
   [db]
   (try
-    (db-do-commands db (create-table-ddl :chatmessages [[:message :text] [:time :datetime]]))
+    (db-do-commands db (create-table-ddl :chatmessages [[:message :text] [:time :datetime] [:username :text]]))
     (catch Exception e
       (println (.getMessage e)))))
 
@@ -61,8 +61,10 @@
 (defn parse-message [opts message]
   (let [[_ _ & text] (navigate message [:body :text])
         [_ {datetime :title} & _] (navigate message [:body :details])
-        [_ _ & username] (navigate message [:body :from_name])]
-    (if (and (some? text) (some? datetime) (not (username-in-list? (:filter opts) (str/join "" username))))
+        [_ _ & userseq] (navigate message [:body :from_name])
+        username (str/trim (str/join "" userseq))]
+    #_(println username)
+    (if (and (some? text) (some? datetime) (not (username-in-list? (:filter opts) username)))
       {:message (-> text
                     ((fn [item] (if (:filter-html opts) item (remove-blocks item))))
                     ((fn [item] (if (:extract-link-text opts) (replace-blocks-with-original-text item) item)))
