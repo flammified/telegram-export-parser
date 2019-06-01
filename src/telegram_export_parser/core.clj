@@ -2,7 +2,8 @@
   (:require [clojure.string :as str]
             [clojure.java.jdbc :refer :all]
             [pl.danieljanus.tagsoup :as tagsoup]
-            [clojure.tools.cli :refer [parse-opts]])
+            [clojure.tools.cli :refer [parse-opts]]
+            [progrock.core :as pr])
   (:gen-class))
 
 (defn create-db-specs [filename]
@@ -88,8 +89,19 @@
 (defn parse-directory! [directory db-specs opts]
   (let [files (filter
                 #(.isFile %)
-                (file-seq (clojure.java.io/file directory)))]
-    (doall (map #(parse-file! %1 db-specs opts) files))))
+                (file-seq (clojure.java.io/file directory)))
+        total-files (count files)
+        progress-bar (pr/progress-bar total-files)]
+
+    (doall
+      (reduce
+        (fn [progress-bar file]
+          (do
+            (pr/print progress-bar)
+            (parse-file! file db-specs opts)
+            (pr/tick progress-bar 1)))
+        progress-bar
+        files))))
 
 (def usage
   (->> ["Parser for telegram HTML logs"
@@ -115,7 +127,6 @@
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
-    (println options)
     (if errors
       (println (str/join " " errors))
       (if (>= (count arguments) 2)

@@ -5,4 +5,5 @@
                  [org.clojure/java.jdbc "0.7.8"]
                  [clj-tagsoup/clj-tagsoup "0.3.0"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
-                 [org.clojure/tools.cli "0.4.1"]])
+                 [org.clojure/tools.cli "0.4.1"]
+                 [progrock "0.1.2"]])
