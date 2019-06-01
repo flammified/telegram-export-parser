@@ -74,13 +74,13 @@
          (filter some?)
          (filter #(not (str/blank? (:message %)))))))
 
-(defn insert-into-db [db {:keys [message time]}]
+(defn insert-into-db! [db {:keys [message time]}]
   (insert! db :chatmessages {:message message :time time}))
 
 (defn parse-file! [file db opts]
   (let [contents (slurp file)
         html (tagsoup/parse-string contents)]
-    (doall (map (partial insert-into-db db) (get-text-of-messages html opts)))))
+    (doall (map (partial insert-into-db! db) (get-text-of-messages html opts)))))
 
 (defn parse-directory! [directory db-specs opts]
   (let [files (filter
