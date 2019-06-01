@@ -68,7 +68,6 @@
 
 (defn get-text-of-messages [root opts]
   (let [[_ _ & messages] (navigate root [:body :page_wrap :page_body :history])]
-
     (->> messages
          (map (partial parse-message opts))
          (filter some?)
