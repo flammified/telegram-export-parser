@@ -68,7 +68,8 @@
                     ((fn [item] (if (:extract-link-text opts) (replace-blocks-with-original-text item) item)))
                     (str/trim)
                     (str/lower-case))
-       :time datetime}
+       :time datetime
+       :username username}
       nil)))
 
 (defn get-text-of-messages [root opts]
@@ -87,9 +88,9 @@
     (doall (map (partial insert-into-db! db) (get-text-of-messages html opts)))))
 
 (defn parse-directory! [directory db-specs opts]
-  (let [files (filter
-                #(.isFile %)
-                (file-seq (clojure.java.io/file directory)))
+  (let [files (->> (file-seq (clojure.java.io/file directory))
+                   (filter #(.isFile %))
+                   (filter #(str/ends-with? (.getName %) ".html")))
         total-files (count files)
         progress-bar (pr/progress-bar total-files)]
 
