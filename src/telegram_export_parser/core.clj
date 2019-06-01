@@ -104,9 +104,9 @@
 (def cli-options
   [["-u" "--filter-html" "Remove html blocks. Defaults to false."]
    ["-e" "--extract-link-text" "Extract text from hyperlinks. Defaults to false."]
-   ["-f" "--filter" "Filters a specific username. Can be used multiple times."
+   ["-f" "--filter USERNAME" "Filters a specific username. Can be used multiple times."
     :default []
-    :assoc-fn (fn [m k username] (update-in m k conj username))]])
+    :assoc-fn (fn [m k username] (println m k username) (update-in m [k] conj username))]])
 
 (defn run-program! [directory filename opts]
   (let [db (create-db-specs filename)]
@@ -115,6 +115,7 @@
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
+    (println options)
     (if errors
       (println (str/join " " errors))
       (if (>= (count arguments) 2)
