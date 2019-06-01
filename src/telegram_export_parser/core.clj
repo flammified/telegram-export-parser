@@ -54,10 +54,14 @@
     ""
     text))
 
+(defn username-in-list? [usernames username]
+  (some? ((set usernames) (str/trim username))))
+
 (defn parse-message [opts message]
   (let [[_ _ & text] (navigate message [:body :text])
-        [_ {datetime :title} & _] (navigate message [:body :details])]
-    (if (and (some? text) (some? datetime))
+        [_ {datetime :title} & _] (navigate message [:body :details])
+        [_ _ & username] (navigate message [:body :from_name])]
+    (if (and (some? text) (some? datetime) (not (username-in-list? (:filter opts) (str/join "" username))))
       {:message (-> text
                     ((fn [item] (if (:filter-html opts) item (remove-blocks item))))
                     ((fn [item] (if (:extract-link-text opts) (replace-blocks-with-original-text item) item)))
@@ -99,7 +103,10 @@
 
 (def cli-options
   [["-u" "--filter-html" "Remove html blocks. Defaults to false."]
-   ["-e" "--extract-link-text" "Extract text from hyperlinks. Defaults to false."]])
+   ["-e" "--extract-link-text" "Extract text from hyperlinks. Defaults to false."]
+   ["-f" "--filter" "Filters a specific username. Can be used multiple times."
+    :default []
+    :assoc-fn (fn [m k username] (update-in m k conj username))]])
 
 (defn run-program! [directory filename opts]
   (let [db (create-db-specs filename)]
